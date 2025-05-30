@@ -8,7 +8,7 @@ ssh someuser@<ip address> -p 2222 (Fill in IP Address from previous step)
 
 ls in someuser ~ directory
 
-cat hint.txt (Read the hint for someuser)
+cat hint.txt (Read the hint for someuser) Welcome123
 
 open in browser <ip address>:8080
 
