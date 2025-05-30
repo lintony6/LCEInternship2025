@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  vulnerable-container:
+    build: .
+    container_name: vulnerable-instance
+    ports:
+      - "8080:80"    # Web server (Apache)
+      - "2222:22"    # SSH
+    restart: unless-stopped
