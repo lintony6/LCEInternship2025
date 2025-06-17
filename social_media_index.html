@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MySocial - Connect and Share</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .navbar {
+            background-color: #1877f2;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar .logo {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+        .navbar .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 25px;
+            font-size: 1.1em;
+            padding: 5px 0; /* Add padding for click area */
+            transition: all 0.3s ease;
+        }
+        .navbar .nav-links a:hover,
+        .navbar .nav-links a.active {
+            text-decoration: underline;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        .main-content {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 20px auto;
+            gap: 20px;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+        .sidebar-left, .sidebar-right {
+            flex: 1;
+            min-width: 250px; /* Minimum width for sidebars before wrapping */
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            align-self: flex-start; /* Stick to the top */
+        }
+        .feed {
+            flex: 2; /* Main content takes more space */
+            min-width: 400px; /* Minimum width for the feed */
+        }
+        .post-form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            margin-bottom: 20px;
+        }
+        .post-form textarea {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
+            min-height: 80px;
+            font-size: 1em;
+        }
+        .post-form button {
+            background-color: #1877f2;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            float: right; /* Align to the right */
+        }
+        .post-form::after { /* Clearfix for float */
+            content: "";
+            display: table;
+            clear: both;
+        }
+        .post {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 2px rgba(0,0,0,.05);
+        }
+        .post-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+        .post-header .author {
+            font-size: 1.1em;
+            margin-right: 10px;
+            color: #1877f2;
+        }
+        .post-header .timestamp {
+            font-size: 0.8em;
+            color: #888;
+        }
+        .post-content {
+            line-height: 1.6;
+            color: #555;
+            margin-top: 10px;
+            word-wrap: break-word; /* Ensure long words wrap */
+        }
+        .post-actions {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-around;
+        }
+        .post-actions button {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 1em;
+            padding: 5px 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .post-actions button:hover {
+            color: #1877f2;
+        }
+        .profile-card {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .profile-card img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 10px;
+            border: 2px solid #1877f2;
+        }
+        .profile-card h3 {
+            margin: 5px 0;
+            color: #333;
+        }
+        .profile-card p {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .suggestions h4 {
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .suggestion-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .suggestion-item img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+        .suggestion-item span {
+            font-weight: bold;
+            color: #1877f2;
+            cursor: pointer; /* Indicate clickable */
+        }
+        .suggestion-item span:hover {
+            text-decoration: underline;
+        }
+        /* Hidden clue for CTF */
+        .hidden-clue {
+            display: none;
+        } /* FLAG{SOCIAL_SOURCE_REVEALED} */
+        .footer {
+            text-align: center;
+            margin-top: auto; /* Push footer to the bottom */
+            padding: 20px;
+            font-size: 0.8em;
+            color: #888;
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+        }
+
+        /* General section styles for content switching */
+        .content-section {
+            display: none; /* Hidden by default */
+            width: 100%; /* Take full width within main-content flex container */
+            flex-grow: 1;
+            box-sizing: border-box; /* Include padding in width */
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+        .content-section h2 {
+            color: #1877f2;
+            margin-bottom: 20px;
+        }
+
+        /* Specific section for profile view */
+        .profile-view {
+            text-align: center;
+            padding: 40px;
+        }
+        .profile-view img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 3px solid #1877f2;
+        }
+        .profile-view h2 {
+            margin-top: 10px;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 2em;
+        }
+        .profile-view p {
+            font-size: 1.1em;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        /* Styles for friends list in Friends section */
+        .friends-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        .friends-list li {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .friends-list li:last-child {
+            border-bottom: none;
+        }
+        .friends-list li img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+        }
+        .friends-list li span {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #1877f2;
+            cursor: pointer;
+        }
+        .friends-list li span:hover {
+            text-decoration: underline;
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+                padding: 10px;
+            }
+            .sidebar-left, .sidebar-right, .feed {
+                width: 100%;
+                min-width: unset;
+                margin-bottom: 20px;
+            }
+            .navbar {
+                flex-direction: column;
+                padding: 10px;
+            }
+            .navbar .nav-links {
+                margin-top: 10px;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .navbar .nav-links a {
+                margin: 5px 10px;
+            }
+            .post-form button {
+                float: none; /* Remove float for better stacking */
+                width: 100%;
+                margin-top: 10px;
+            }
+            .content-section {
+                padding: 15px;
+            }
+            .profile-view {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="#" class="logo">MySocial</a>
+        <div class="nav-links">
+            <a href="#" data-target="home-section" class="nav-link active"><i class="fas fa-home"></i> Home</a>
+            <a href="#" data-target="friends-section" class="nav-link"><i class="fas fa-user-friends"></i> Friends</a>
+            <a href="#" data-target="notifications-section" class="nav-link"><i class="fas fa-bell"></i> Notifications</a>
+            <a href="#" data-target="messages-section" class="nav-link"><i class="fas fa-envelope"></i> Messages</a>
+            <a href="#" data-target="settings-section" class="nav-link"><i class="fas fa-cog"></i> Settings</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Home Section (Default View) -->
+        <div id="home-section" class="content-section" style="display: flex; flex-wrap: wrap; gap: 20px;">
+            <div class="sidebar-left">
+                <div class="profile-card">
+                    <img src="https://placehold.co/80x80/aabbcc/ffffff?text=U" alt="User Profile Picture">
+                    <h3>John Doe</h3>
+                    <p>Web Developer | Security Enthusiast</p>
+                    <p>Based in Cyber City</p>
+                    <p>Followers: 1.2K | Following: 500</p>
+                </div>
+                <div class="suggestions">
+                    <h4>Your Shortcuts</h4>
+                    <ul>
+                        <li><i class="fas fa-users"></i> Groups</li>
+                        <li><i class="fas fa-calendar-alt"></i> Events</li>
+                        <li><i class="fas fa-bookmark"></i> Saved</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="feed">
+                <div class="post-form">
+                    <textarea placeholder="What's on your mind, John?"></textarea>
+                    <button>Post Update</button>
+                </div>
+
+                <div class="post">
+                    <div class="post-header">
+                        <span class="author">Alice Doe</span>
+                        <span class="timestamp">2 hours ago</span>
+                    </div>
+                    <div class="post-content">
+                        Just had a fantastic hike in the mountains today! The views were breathtaking. #NatureLover #HikingAdventures
+                        <br><img src="https://placehold.co/600x400/87CEEB/FFFFFF?text=Mountain+View" alt="Mountain View" style="max-width:100%; height:auto; margin-top:10px; border-radius:5px;">
+                    </div>
+                    <div class="post-actions">
+                        <button><i class="fas fa-thumbs-up"></i> Like</button>
+                        <button><i class="fas fa-comment"></i> Comment</button>
+                        <button><i class="fas fa-share"></i> Share</button>
+                    </div>
+                </div>
+
+                <div class="post">
+                    <div class="post-header">
+                        <span class="author">Bob Smith</span>
+                        <span class="timestamp">5 hours ago</span>
+                    </div>
+                    <div class="post-content">
+                        Been diving deep into Docker and Kubernetes lately. The orchestration capabilities are truly powerful. Any tips for a beginner?
+                    </div>
+                    <div class="post-actions">
+                        <button><i class="fas fa-thumbs-up"></i> Like</button>
+                        <button><i class="fas fa-comment"></i> Comment</button>
+                        <button><i class="fas fa-share"></i> Share</button>
+                    </div>
+                </div>
+
+                <div class="post">
+                    <div class="post-header">
+                        <span class="author">CyberSec Expert</span>
+                        <span class="timestamp">Yesterday</span>
+                    </div>
+                    <div class="post-content">
+                        Remember to always check the source code of web pages for hidden information! You might be surprised what you find. 😉
+                    </div>
+                    <div class="post-actions">
+                        <button><i class="fas fa-thumbs-up"></i> Like</button>
+                        <button><i class="fas fa-comment"></i> Comment</button>
+                        <button><i class="fas fa-share"></i> Share</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-right">
+                <div class="suggestions">
+                    <h4>Friends</h4> <!-- Changed from People You May Know -->
+                    <div class="suggestion-item">
+                        <img src="https://placehold.co/40x40/FF5733/FFFFFF?text=M" alt="User 1">
+                        <span class="profile-link" data-username="Maria Garcia">Maria Garcia</span>
+                    </div>
+                    <div class="suggestion-item">
+                        <img src="https://placehold.co/40x40/33FF57/FFFFFF?text=D" alt="User 2">
+                        <span class="profile-link" data-username="David Lee">David Lee</span>
+                    </div>
+                    <div class="suggestion-item">
+                        <img src="https://placehold.co/40x40/3357FF/FFFFFF?text=S" alt="User 3">
+                        <span class="profile-link" data-username="Sarah Chen">Sarah Chen</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Friends Section -->
+        <div id="friends-section" class="content-section">
+            <h2><i class="fas fa-user-friends"></i> My Friends List</h2>
+            <p>Here are your current friends on MySocial:</p>
+            <div class="friends-list">
+                <ul>
+                    <!-- Friends will be dynamically added here by JavaScript -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Notifications Section -->
+        <div id="notifications-section" class="content-section">
+            <h2><i class="fas fa-bell"></i> Notifications</h2>
+            <p>You have new notifications!</p>
+            <ul>
+                <li>Alice Doe liked your post. <span class="timestamp">1 hour ago</span></li>
+                <li>Bob Smith commented on your photo. <span class="timestamp">3 hours ago</span></li>
+                <li>New friend suggestion: Jane Doe. <span class="timestamp">Yesterday</span></li>
+            </ul>
+        </div>
+
+        <!-- Messages Section -->
+        <div id="messages-section" class="content-section">
+            <h2><i class="fas fa-envelope"></i> Messages</h2>
+            <p>Your inbox is currently empty. Start a new conversation!</p>
+            <p>Clicking on this might open a chat interface in a real app.</p>
+        </div>
+
+        <!-- Settings Section -->
+        <div id="settings-section" class="content-section">
+            <h2><i class="fas fa-cog"></i> Settings</h2>
+            <p>Adjust your preferences here.</p>
+            <ul>
+                <li>Privacy Settings</li>
+                <li>Account Security</li>
+                <li>Notification Preferences</li>
+            </ul>
+        </div>
+
+        <!-- Profile View Section (Dynamically updated) -->
+        <div id="profile-section" class="content-section profile-view">
+            <img id="profile-pic" src="https://placehold.co/120x120/cccccc/ffffff?text=?" alt="Profile Picture">
+            <h2 id="profile-name">Guest Profile</h2>
+            <p id="profile-bio">This is a mock profile page. In a real application, this would display the user's detailed information, posts, and connections.</p>
+            <p>Currently viewing profile of: <span id="current-profile-user" style="font-weight: bold; color: #1877f2;"></span></p>
+        </div>
+
+    </div>
+
+    <!-- Hidden clue for CTF -->
+    <div class="hidden-clue">This is a secret flag: FLAG{SOCIAL_SOURCE_REVEALED}</div>
+
+    <div class="footer">
+        &copy; 2025 MySocial Inc. All rights reserved. | <a href="#" style="color:#888;">Privacy Policy</a> | <a href="#" style="color:#888;">Terms of Service</a>
+        <br>For support, please contact us at support@mysocial.local
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const contentSections = document.querySelectorAll('.main-content > .content-section');
+            // Select all profile links, including dynamically added ones
+            let profileLinks = document.querySelectorAll('.profile-link');
+            const profileSection = document.getElementById('profile-section');
+            const profileNameElement = document.getElementById('profile-name');
+            const currentProfileUserElement = document.getElementById('current-profile-user');
+            const profilePicElement = document.getElementById('profile-pic');
+            const friendsListElement = document.querySelector('#friends-section .friends-list ul');
+
+            const friendsData = [
+                { name: "Maria Garcia", img: "https://placehold.co/50x50/FF5733/FFFFFF?text=M" },
+                { name: "David Lee", img: "https://placehold.co/50x50/33FF57/FFFFFF?text=D" },
+                { name: "Sarah Chen", img: "https://placehold.co/50x50/3357FF/FFFFFF?text=S" },
+                { name: "Emily White", img: "https://placehold.co/50x50/FFA07A/FFFFFF?text=E" },
+                { name: "Michael Brown", img: "https://placehold.co/50x50/8A2BE2/FFFFFF?text=M" }
+            ];
+
+            // Function to populate the friends list
+            function populateFriendsList() {
+                friendsListElement.innerHTML = ''; // Clear existing list
+                friendsData.forEach(friend => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `
+                        <img src="${friend.img}" alt="${friend.name}">
+                        <span class="profile-link" data-username="${friend.name}">${friend.name}</span>
+                    `;
+                    friendsListElement.appendChild(listItem);
+                });
+                // Re-select profile links after populating to include new elements
+                profileLinks = document.querySelectorAll('.profile-link');
+                addProfileLinkListeners(); // Re-attach listeners
+            }
+
+            // Function to add event listeners to profile links
+            function addProfileLinkListeners() {
+                profileLinks.forEach(link => {
+                    // Remove existing listeners to prevent duplicates if function is called multiple times
+                    link.removeEventListener('click', handleProfileLinkClick);
+                    link.addEventListener('click', handleProfileLinkClick);
+                });
+            }
+
+            function handleProfileLinkClick(e) {
+                e.preventDefault();
+                const username = this.dataset.username;
+                showSection('profile-section', username);
+            }
+
+            // Function to show a specific content section
+            function showSection(targetId, user = null) {
+                contentSections.forEach(section => {
+                    // Check if the section is the home section and handle its display style
+                    if (section.id === 'home-section') {
+                        section.style.display = (section.id === targetId) ? 'flex' : 'none';
+                    } else {
+                        section.style.display = (section.id === targetId) ? 'block' : 'none';
+                    }
+                });
+
+                // Update active navigation link
+                navLinks.forEach(link => {
+                    if (link.dataset.target === targetId) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+
+                // If showing profile section, update content
+                if (targetId === 'profile-section' && user) {
+                    profileNameElement.textContent = user;
+                    currentProfileUserElement.textContent = user;
+                    // Find friend data to get correct image, or use generic
+                    const friend = friendsData.find(f => f.name === user);
+                    profilePicElement.src = friend ? friend.img : `https://placehold.co/120x120/cccccc/ffffff?text=${user.charAt(0)}`;
+                    // You could add more mock profile details here based on the 'user'
+                    profileBio.textContent = `This is the profile page for ${user}. In a real application, this would display ${user}'s detailed information, posts, and connections.`;
+                }
+            }
+
+            // Event Listeners for Navbar Links
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault(); // Prevent default link behavior
+                    const targetId = link.dataset.target;
+                    showSection(targetId);
+                });
+            });
+
+            // Basic interactivity for mock buttons
+            document.querySelectorAll('.post-actions button').forEach(button => {
+                button.addEventListener('click', () => {
+                    console.log('Mock: Feature not yet implemented!');
+                });
+            });
+            document.querySelector('.post-form button').addEventListener('click', () => {
+                const textarea = document.querySelector('.post-form textarea');
+                if (textarea.value.trim() !== '') {
+                    console.log('Mock: Post submitted!');
+                    textarea.value = '';
+                } else {
+                    console.log('Mock: Please write something before posting.');
+                }
+            });
+
+            // Initial setup
+            populateFriendsList(); // Populate the friends list on load
+            showSection('home-section'); // Initially show the home section
+        });
+    </script>
+</body>
+</html>

@@ -1,13 +1,18 @@
 #!/bin/bash
+set -e
 
-# Ensure SSH directory exists
-mkdir -p /run/sshd
+mkdir -p /run/sshd /var/run/vsftpd/empty
 
-# Start SSH in foreground mode
-/usr/sbin/sshd -D &
+# Start SSH
+/usr/sbin/sshd
 
-# Start Apache in foreground (keeps container running)
-apachectl -D FOREGROUND 
+# Start Apache
+apachectl start
 
-# Switch to someuser after services start
-exec su - someuser
+# Start vsftpd
+touch /var/log/vsftpd.log
+chmod 644 /var/log/vsftpd.log
+/usr/sbin/vsftpd /etc/vsftpd.conf > /var/log/vsftpd_startup.log 2>&1 &
+
+# Keep container alive
+tail -f /dev/null

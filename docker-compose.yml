@@ -1,10 +1,12 @@
 version: '3.8'
 
 services:
-  vulnerable-container:
+  vulnerable-all-in-one:
     build: .
-    container_name: vulnerable-instance
+    container_name: vulnerable-all-in-one
     ports:
-      - "8080:80"    # Web server (Apache)
-      - "2222:22"    # SSH
+      - "8080:80"
+      - "2222:22"
+      - "2121:21"
+      - "21100-21110:21100-21110"
     restart: unless-stopped

@@ -1,59 +1,87 @@
-# Use an Ubuntu base image
+# Start with Ubuntu 20.04
 FROM ubuntu:20.04
 
-# Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Update package lists and install required packages
-RUN apt-get update && apt-get install -y \
-    openssh-server \
-    netcat \
-    apache2 \
-    sudo \
-    apt-transport-https \
-    && rm -rf /var/lib/apt/lists/*
+# Install services and tools
+RUN apt-get update && \
+    apt-get install -y openssh-server netcat-traditional apache2 sudo nmap curl vsftpd inetutils-ftp net-tools && \
+    rm -rf /var/lib/apt/lists/*
 
-# Create necessary directories as root BEFORE switching users
+# Create run directories
 RUN mkdir -p /run/sshd /var/run/apache2 /var/lock/apache2
-RUN chown -R root:root /run/sshd /var/run/apache2 /var/lock/apache2
 
-# Create a low-privilege user (someuser) with a known password
-RUN useradd -m -s /bin/bash someuser
-RUN echo "someuser:Welcome123" | chpasswd
-RUN mkdir -p /home/someuser
-RUN echo "Check the webpage source on port 8080 for a hidden clue." > /home/someuser/hint.txt
-RUN chown someuser:someuser /home/someuser/hint.txt
+# vsftpd secure chroot directory
+RUN mkdir -p /var/run/vsftpd/empty && chmod 700 /var/run/vsftpd/empty
 
-# Create a high-privilege user (hacker) with a hidden password
-RUN useradd -m -s /bin/bash hacker
-RUN echo "hacker:EscalateMe" | chpasswd
-RUN usermod -aG sudo hacker
-RUN echo "hacker ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+# --- SSH Configuration ---
+# Allow root login and password authentication (WARNING: Insecure)
+RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
-# Ensure someuser does NOT have sudo privileges
-RUN sed -i '/someuser/d' /etc/sudoers
+# --- Wordlists ---
+RUN mkdir -p /opt/wordlists
+RUN echo "someuser\nhacker\nroot" > /opt/wordlists/users.txt
+RUN echo "Welcome123\nEscalateMe\npassword\n123456" > /opt/wordlists/passwords.txt
 
-# Create a visually minimal Apache index.html with a visible hint and hidden credentials
-RUN echo "<html><head><title>Vulnerable Server</title></head><body><h1>Look Deeper!</h1><p>The real secrets are hidden from plain sight...</p><div style=\"display:none;\" id=\"hiddenCredentials\">  <span id=\"username\">Username: hacker</span><br>  <span id=\"password\">Password: EscalateMe</span></div></body></html>" > /var/www/html/index.html
+# --- User Setup for Privilege Escalation ---
+RUN useradd -m -s /bin/bash someuser && \
+    echo "someuser:Welcome123" | chpasswd && \
+    echo "Check the webpage source on port 8080 for a hidden clue." > /home/someuser/hint.txt && \
+    chown someuser:someuser /home/someuser/hint.txt
 
-# Leave a hint for privilege escalation in hacker's home directory and grant read permission to others
-RUN echo "Try escalating privileges with: sudo su" > /home/hacker/.hidden_hint && chmod 404 /home/hacker/.hidden_hint
+RUN useradd -m -s /bin/bash hacker && \
+    echo "hacker:EscalateMe" | chpasswd && \
+    usermod -aG sudo hacker && \
+    echo "hacker ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-# Create a root-only hidden file with a hint to check /root
-RUN echo "Check the /root directory for the final flag." > /home/hacker/.final_hint && chmod 400 /home/hacker/.final_hint
-# Fix Apache ServerName warning
+RUN sed -i '/someuser/d' /etc/sudoers.d/someuser || true
+
+RUN echo "Try escalating privileges with: sudo su" > /home/hacker/.hidden_hint && \
+    chmod 404 /home/hacker/.hidden_hint && \
+    echo "Check the /root directory for the final flag." > /home/hacker/.final_hint && \
+    chmod 400 /home/hacker/.final_hint
+
+RUN echo "Congrats! You escalated privileges. Flag: {ROOT_ACCESS_GRANTED}" > /root/secret.txt && \
+    chmod 600 /root/secret.txt
+
+# --- Apache2 Web Server Configuration ---
+RUN a2enmod autoindex
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+RUN mkdir -p /var/www/html/secrets
+RUN echo "FLAG{OPEN_DIRECTORY_LISTING_EXPOSED_SECRETS}" > /var/www/html/secrets/flag.txt && \
+    echo "Another file in this secret directory." > /var/www/html/secrets/another_file.txt
+RUN sed -i '/<Directory \/var\/www\/html>/a\ \tOptions Indexes FollowSymLinks' /etc/apache2/sites-available/000-default.conf
 
-# Create a root-only file that requires privilege escalation
-RUN echo "Congrats! You escalated privileges. Flag: {ROOT_ACCESS_GRANTED}" > /root/secret.txt
-RUN chmod 600 /root/secret.txt
+# Modify Apache's default DocumentRoot to point to the social media page
+RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/social|g' /etc/apache2/sites-available/000-default.conf
+RUN sed -i 's|<Directory /var/www/html>|<Directory /var/www/html/social>|g' /etc/apache2/sites-available/000-default.conf
 
-# Copy startup script and make it executable
+# --- Mock Social Media Page Setup ---
+RUN mkdir -p /var/www/html/social
+# Copies the social_media_index.html from the build context into the container
+COPY social_media_index.html /var/www/html/social/index.html
+
+# --- VSFTPD SETUP FOR ANONYMOUS READ-ONLY ACCESS ---
+RUN mkdir -p /var/ftp && chown ftp:ftp /var/ftp
+
+# Anonymous chroot root directory. Owned by root, not writable by FTP user.
+RUN mkdir -p /var/ftp/pub && chown root:root /var/ftp/pub && chmod 755 /var/ftp/pub
+
+# Flag file readable by anonymous users.
+RUN echo "FLAG{ANONYMOUS_FTP_ACCESS_GRANTED}" > /var/ftp/pub/ftp_flag.txt && chmod 644 /var/ftp/pub/ftp_flag.txt
+
+# --- IMPORTANT: Remove 'uploads' directory if only read access is needed ---
+# RUN mkdir -p /var/ftp/pub/uploads && chmod 777 /var/ftp/pub/uploads && chown ftp:ftp /var/ftp/pub/uploads
+
+# --- Copy Configuration Files and Startup Script ---
+COPY vsftpd.conf /etc/vsftpd.conf
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
-# Expose web and SSH ports
-EXPOSE 22 80
+# --- Expose Ports ---
+EXPOSE 22 80 21 21100-21110
 
-# Ensure the script runs with root privileges
-CMD ["sudo", "/bin/bash", "/start.sh"]
+# --- Container Entrypoint ---
+CMD ["/start.sh"]
