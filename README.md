@@ -1,36 +1,38 @@
-cd <folder> into directory of container project
+Getting Started
+Set up the container:
+Navigate to your project directory and run docker compose up -d --build.
 
-docker compose up -d --build (Build container and start)
+Find the container's IP:
+Use ipconfig on your host machine to locate the container's private IP address (e.g., 172.x.x.x).
 
-ipconfig (To get IP Address of container)
+Initial Access (someuser)
+SSH as someuser:
+Connect via ssh someuser@<CONTAINER_IP_ADDRESS> -p 2222. The password is Welcome123.
 
-ssh someuser@ip address -p 2222 (Fill in IP Address from previous step)
+Explore the environment:
+Once logged in, check for hints with ls and cat hint.txt.
 
-Password for someuser is: Welcome123
+Perform default nmap script scan:
+nmap -sC -sV localhost
 
-ls in someuser ~ directory
+Anonymously login to FTP server:
+Login to the ftp server with ftp localhost with anonymous and no password to retrieve the flag.
 
-cat hint.txt (Read the hint for someuser)
+Access the web app:
+Open http://<CONTAINER_IP_ADDRESS>:8080 in your browser. Use browser developer tools (F12) to inspect the page for hidden credentials.
 
-open in browser ip address:8080
+Exit someuser:
+Type exit in the SSH terminal.
 
-Inspect element of webpage (Find hidden hacker credentials)
+Privilege Escalation (hacker & Root)
+SSH as hacker:
+Connect using ssh hacker@<CONTAINER_IP_ADDRESS> -p 2222 with the password found from the web app.
 
-exit in terminal of someuser
+Find hidden clues:
+List all files using ls -a and read the hidden hint with cat .hidden_hint.
 
-ssh hacker@ip address -p 2222 (Fill in same IP Address to log in as hacker)
+Escalate privileges:
+Use sudo su to gain root access.
 
-ls -a (To find hidden files with hints)
-
-cat .hidden_hint (View hint)
-
-sudo su (Privilege Escalation)
-
-cat .final_hint (Read final hint)
-
-cd /root (cd to /root with final flag)
-
-ls -a (List all files even hidden)
-
-cat secret.txt (Get flag)
-
+Get the flag:
+Read the final hint with cat .final_hint, then cd /root and cat secret.txt to reveal the flag.
