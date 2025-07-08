@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cybershield Labs | Enterprise Security</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #0e0e0e;
+            color: #00ffe1;
+            padding: 40px;
+            margin: 0;
+        }
+        header {
+            border-bottom: 1px solid #00ffe1;
+            margin-bottom: 40px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 3em;
+        }
+        nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            padding: 0;
+        }
+        nav ul li {
+            margin: 0 15px;
+        }
+        nav a {
+            color: #00ffe1;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        nav a:hover {
+            color: #ffffff;
+        }
+        .content {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px #00ffe1;
+        }
+        input[type="text"], input[type="password"] {
+            padding: 8px;
+            width: 100%;
+            margin: 10px 0;
+            background: #111;
+            color: #00ffe1;
+            border: 1px solid #00ffe1;
+        }
+        input[type="submit"] {
+            background: #00ffe1;
+            border: none;
+            color: #000;
+            font-weight: bold;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        pre {
+            background: #111;
+            padding: 20px;
+            color: #00ff88;
+            border: 1px solid #00ffe1;
+            overflow-x: auto;
+        }
+        a.button {
+            display: inline-block;
+            background: #00ffe1;
+            color: #000;
+            padding: 10px 15px;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Cybershield Labs</h1>
+        <p style="text-align:center; color:#ccc;">Enterprise Security & Research Division</p>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/tools/diagnostics">Diagnostics</a></li>
+                <li><a href="/tools/calc">Tools</a></li>
+                <li><a href="/login">Customer Portal</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
+
