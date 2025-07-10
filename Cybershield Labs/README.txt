@@ -16,7 +16,7 @@ Record flag value
 #SQL Injection
 Press "Customer Portal" button
 For Username issue command: ' OR '1'='1
-Password: "secureadmin123"
+Password: "secureadmin123" (Found via inspecting element)
 Record flag value
 
 #Stored XSS Vulnerability
